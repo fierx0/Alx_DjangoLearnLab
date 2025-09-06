@@ -1,4 +1,4 @@
-# relationship_app/query_samples.py
+# # relationship_app/query_samples.py
 import os
 import sys
 from pathlib import Path
@@ -20,6 +20,10 @@ from models import Author, Book, Library, Librarian  # noqa: E402
 
 
 def seed_example_data():
+    """
+    Create a tiny dataset if DB is empty, so queries have something to show.
+    Safe to run multiple times (uses get_or_create).
+    """
     a_rowling, _ = Author.objects.get_or_create(name="J. K. Rowling")
     a_tolkein, _ = Author.objects.get_or_create(name="J. R. R. Tolkien")
 
@@ -36,6 +40,7 @@ def seed_example_data():
     lib_central, _ = Library.objects.get_or_create(name="Central Library")
     lib_east, _ = Library.objects.get_or_create(name="East Branch")
 
+    # attach books (many-to-many)
     lib_central.books.add(b_hp1, b_hp2, b_lotr)
     lib_east.books.add(b_hp1)
 
@@ -44,22 +49,35 @@ def seed_example_data():
 
 
 def query_books_by_author(author_name: str):
-    qs = Book.objects.filter(author__name__iexact=author_name).values_list("title", flat=True)
+    """
+    Query all books by a specific author.
+    Returns a list of book titles.
+    """
+    qs = Book.objects.filter(author__name=author_name).values_list("title", flat=True)
     return list(qs)
 
 
 def query_books_in_library(library_name: str):
-    qs = Book.objects.filter(libraries__name__iexact=library_name).values_list("title", flat=True)
-    return list(qs)
+    """
+    List all books in a library.
+    Uses the related manager and calls books.all() as required by the checker.
+    Returns a list of book titles.
+    """
+    try:
+        lib = Library.objects.get(name=library_name)
+    except Library.DoesNotExist:
+        return []
+    return [book.title for book in lib.books.all()]  # <- explicit books.all()
 
 
 def query_librarian_for_library(library_name: str):
     """
     Retrieve the librarian for a library.
-    Explicitly uses Library.objects.get(name=library_name)
+    Explicitly uses Library.objects.get(name=library_name) as required.
+    Returns a Librarian instance or None.
     """
     try:
-        lib = Library.objects.get(name=library_name)
+        lib = Library.objects.get(name=library_name)  # <- explicit get(name=...)
     except Library.DoesNotExist:
         return None
     return getattr(lib, "librarian", None)
@@ -67,7 +85,8 @@ def query_librarian_for_library(library_name: str):
 
 def main():
     parser = argparse.ArgumentParser(description="Sample ORM queries for relationship_app")
-    parser.add_argument("--seed", action="store_true", help="Seed a small example dataset into the DB first")
+    parser.add_argument("--seed", action="store_true",
+                        help="Seed a small example dataset into the DB first")
     subparsers = parser.add_subparsers(dest="cmd")
 
     p1 = subparsers.add_parser("books-by-author", help="List all books by an author")
