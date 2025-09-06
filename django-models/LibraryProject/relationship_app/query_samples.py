@@ -20,10 +20,6 @@ from models import Author, Book, Library, Librarian  # noqa: E402
 
 
 def seed_example_data():
-    """
-    Optional: create a tiny dataset if DB is empty, so queries have something to show.
-    Safe to run multiple times (uses get_or_create).
-    """
     a_rowling, _ = Author.objects.get_or_create(name="J. K. Rowling")
     a_tolkein, _ = Author.objects.get_or_create(name="J. R. R. Tolkien")
 
@@ -40,7 +36,6 @@ def seed_example_data():
     lib_central, _ = Library.objects.get_or_create(name="Central Library")
     lib_east, _ = Library.objects.get_or_create(name="East Branch")
 
-    # attach books (many-to-many)
     lib_central.books.add(b_hp1, b_hp2, b_lotr)
     lib_east.books.add(b_hp1)
 
@@ -49,33 +44,24 @@ def seed_example_data():
 
 
 def query_books_by_author(author_name: str):
-    """
-    Query all books by a specific author.
-    """
     qs = Book.objects.filter(author__name__iexact=author_name).values_list("title", flat=True)
     return list(qs)
 
 
 def query_books_in_library(library_name: str):
-    """
-    List all books in a library.
-    No use of books.all(); fetch titles directly via values_list on the related manager.
-    """
-    lib = Library.objects.filter(name__iexact=library_name).first()
-    if not lib:
-        return []
-    return list(lib.books.values_list("title", flat=True))
+    qs = Book.objects.filter(libraries__name__iexact=library_name).values_list("title", flat=True)
+    return list(qs)
 
 
 def query_librarian_for_library(library_name: str):
     """
     Retrieve the librarian for a library.
-    Avoids Library.objects.get(...); uses .filter(...).first() to prevent exceptions.
+    Explicitly uses Library.objects.get(name=library_name)
     """
-    lib = Library.objects.filter(name__iexact=library_name).first()
-    if not lib:
+    try:
+        lib = Library.objects.get(name=library_name)
+    except Library.DoesNotExist:
         return None
-    # One-to-one reverse accessor: lib.librarian (because related_name="librarian")
     return getattr(lib, "librarian", None)
 
 
