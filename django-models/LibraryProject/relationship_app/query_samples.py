@@ -27,9 +27,15 @@ def seed_example_data():
     a_rowling, _ = Author.objects.get_or_create(name="J. K. Rowling")
     a_tolkein, _ = Author.objects.get_or_create(name="J. R. R. Tolkien")
 
-    b_hp1, _ = Book.objects.get_or_create(title="Harry Potter and the Philosopher's Stone", author=a_rowling)
-    b_hp2, _ = Book.objects.get_or_create(title="Harry Potter and the Chamber of Secrets", author=a_rowling)
-    b_lotr, _ = Book.objects.get_or_create(title="The Lord of the Rings", author=a_tolkein)
+    b_hp1, _ = Book.objects.get_or_create(
+        title="Harry Potter and the Philosopher's Stone", author=a_rowling
+    )
+    b_hp2, _ = Book.objects.get_or_create(
+        title="Harry Potter and the Chamber of Secrets", author=a_rowling
+    )
+    b_lotr, _ = Book.objects.get_or_create(
+        title="The Lord of the Rings", author=a_tolkein
+    )
 
     lib_central, _ = Library.objects.get_or_create(name="Central Library")
     lib_east, _ = Library.objects.get_or_create(name="East Branch")
@@ -53,18 +59,21 @@ def query_books_by_author(author_name: str):
 def query_books_in_library(library_name: str):
     """
     List all books in a library.
+    No use of books.all(); fetch titles directly via values_list on the related manager.
     """
-    qs = Book.objects.filter(libraries__name__iexact=library_name).values_list("title", flat=True)
-    return list(qs)
+    lib = Library.objects.filter(name__iexact=library_name).first()
+    if not lib:
+        return []
+    return list(lib.books.values_list("title", flat=True))
 
 
 def query_librarian_for_library(library_name: str):
     """
     Retrieve the librarian for a library.
+    Avoids Library.objects.get(...); uses .filter(...).first() to prevent exceptions.
     """
-    try:
-        lib = Library.objects.get(name__iexact=library_name)
-    except Library.DoesNotExist:
+    lib = Library.objects.filter(name__iexact=library_name).first()
+    if not lib:
         return None
     # One-to-one reverse accessor: lib.librarian (because related_name="librarian")
     return getattr(lib, "librarian", None)
@@ -119,4 +128,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
