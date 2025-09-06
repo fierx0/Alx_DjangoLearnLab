@@ -53,14 +53,15 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login as auth_login
 
-# Registration (function-based view)
+
 def register(request):
+    """User registration view"""
     if request.method == "POST":
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            auth_login(request, user)           # auto-login after register
-            return redirect("list_books")       # or any page you want
+            auth_login(request, user)  # log the user in immediately
+            return redirect("list_books")  # or any page you prefer
     else:
         form = UserCreationForm()
     return render(request, "relationship_app/register.html", {"form": form})
