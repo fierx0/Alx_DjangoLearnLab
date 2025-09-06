@@ -48,3 +48,19 @@ def seed_data(request):
     Librarian.objects.get_or_create(name="Bob", library=east)
 
     return HttpResponse("Seed data inserted.")
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login as auth_login
+
+# Registration (function-based view)
+def register(request):
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            auth_login(request, user)           # auto-login after register
+            return redirect("list_books")       # or any page you want
+    else:
+        form = UserCreationForm()
+    return render(request, "relationship_app/register.html", {"form": form})
