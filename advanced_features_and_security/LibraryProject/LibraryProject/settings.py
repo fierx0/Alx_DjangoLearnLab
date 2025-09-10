@@ -40,8 +40,9 @@ INSTALLED_APPS = [
     'relationship_app',
     "accounts",
     "core",
+    
 ]
-AUTH_USER_MODEL = "accounts.User"
+AUTH_USER_MODEL = "bookshelf.CustomUser"
 
 # Media (for profile photos)
 import os
