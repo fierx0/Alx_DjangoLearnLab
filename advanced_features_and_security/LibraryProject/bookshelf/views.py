@@ -15,7 +15,7 @@ from .models import Article
 @permission_required('core.can_view', raise_exception=True)
 def article_list(request):
     qs = Article.objects.select_related("author").order_by("-created_at")
-    return render(request, "core/article_list.html", {"articles": qs})
+    return render(request, "core/article_list.html", {"book_list", "books": qs})
 
 @login_required
 @permission_required('core.can_view', raise_exception=True)
