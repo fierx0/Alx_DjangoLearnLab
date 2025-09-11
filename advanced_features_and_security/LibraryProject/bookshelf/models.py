@@ -44,3 +44,30 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.username
+
+
+# advanced_features_and_security/core/models.py
+from django.db import models
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class Article(models.Model):
+    title = models.CharField(max_length=200)
+    body = models.TextField()
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="articles")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        # NOTE: Django already creates default perms: add/change/delete/view_<model>
+        # We ALSO add the custom ones you asked for with these exact codenames:
+        permissions = (
+            ("can_view", "Can view Article (custom)"),
+            ("can_create", "Can create Article (custom)"),
+            ("can_edit", "Can edit Article (custom)"),
+            ("can_delete", "Can delete Article (custom)"),
+        )
+
+    def __str__(self):
+        return self.title

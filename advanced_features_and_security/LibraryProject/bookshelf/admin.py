@@ -18,3 +18,13 @@ class CustomUserAdmin(UserAdmin):
 
 # ✅ This is what the checker is looking for:
 admin.site.register(CustomUser, CustomUserAdmin)
+
+
+# advanced_features_and_security/core/admin.py
+from django.contrib import admin
+from .models import Article
+
+@admin.register(Article)
+class ArticleAdmin(admin.ModelAdmin):
+    list_display = ("id", "title", "author", "created_at", "updated_at")
+    search_fields = ("title", "body", "author__username")
