@@ -132,3 +132,104 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+# -------------------------
+# PRODUCTION SAFETY SWITCH
+# -------------------------
+DEBUG = False  # Never True in production
+
+# Define allowed hosts for deployment (edit to your domain/IP)
+ALLOWED_HOSTS = ["example.com", "www.example.com", "your.server.ip"]
+
+# If you're behind a proxy/HTTPS terminator, also consider:
+# SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# -------------------------
+# COOKIES & SESSIONS
+# -------------------------
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True  # (Django 4.1+) blocks JS access to CSRF cookie
+
+# Recommended: Limit cookie scope
+SESSION_COOKIE_SAMESITE = "Lax"  # or "Strict" if it fits your flows
+CSRF_COOKIE_SAMESITE = "Lax"
+
+# -------------------------
+# BROWSER SECURITY HEADERS
+# -------------------------
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+
+# X-Frame-Options blocks clickjacking; set to 'DENY' unless you must frame your site.
+X_FRAME_OPTIONS = "DENY"
+
+# NOTE on XSS filter header:
+# SECURE_BROWSER_XSS_FILTER was removed in Django 4+. Modern browsers ignore it.
+# Prefer CSP (configured below) for script loading control.
+
+# -------------------------
+# HSTS (enable ONLY when you have HTTPS fully working)
+# -------------------------
+SECURE_HSTS_SECONDS = 31536000  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+
+# -------------------------
+# CSRF TRUST (adjust if you post from these origins, e.g., admin, CDN, etc.)
+# -------------------------
+# Use your real hostnames with https:// scheme:
+CSRF_TRUSTED_ORIGINS = [
+    "https://example.com",
+    "https://www.example.com",
+]
+
+# -------------------------
+# SECURITY MIDDLEWARE
+# -------------------------
+MIDDLEWARE = [
+    "django.middleware.security.SecurityMiddleware",
+    # CSP goes early to set headers (add after installing django-csp)
+    "csp.middleware.CSPMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+]
+
+# -------------------------
+# CONTENT SECURITY POLICY (via django-csp)
+# -------------------------
+# Install: pip install django-csp
+# Minimal safe defaults; expand as needed for CDNs, analytics, etc.
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_SCRIPT_SRC = ("'self'",)  # prefer nonces instead of 'unsafe-inline'
+CSP_STYLE_SRC = ("'self'",)
+CSP_IMG_SRC = ("'self'", "data:",)
+CSP_FONT_SRC = ("'self'", "data:",)
+CSP_CONNECT_SRC = ("'self'",)
+CSP_BASE_URI = ("'self'",)
+CSP_FRAME_ANCESTORS = ("'none'",)  # complements X_FRAME_OPTIONS=DENY
+
+# Enable nonces so you can inline small scripts safely with {% csp_nonce %}
+CSP_INCLUDE_NONCE_IN = ["script-src", "style-src"]
+
+# -------------------------
+# LOGGING (surface security-related issues)
+# -------------------------
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {"class": "logging.StreamHandler"},
+    },
+    "loggers": {
+        "django.security": {"handlers": ["console"], "level": "WARNING"},
+        "django.request": {"handlers": ["console"], "level": "WARNING"},
+    },
+}

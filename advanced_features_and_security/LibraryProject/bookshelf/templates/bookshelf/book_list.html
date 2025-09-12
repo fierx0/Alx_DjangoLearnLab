@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>Books</title></head>
+  <body>
+    <h1>Books</h1>
+
+    <form action="" method="get">
+      <!-- GET search doesn't need CSRF, but is still validated in the view -->
+      {{ form.q.label_tag }} {{ form.q }}
+      <button type="submit">Search</button>
+    </form>
+
+    <ul>
+      {% for book in books %}
+        <li>{{ book.title|escape }} — {{ book.author|escape }} ({{ book.publication_year }})</li>
+      {% empty %}
+        <li>No books found.</li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>

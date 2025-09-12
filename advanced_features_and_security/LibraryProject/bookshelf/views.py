@@ -94,3 +94,67 @@ class ArticleDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView)
     success_url = reverse_lazy("core:article_list")
     permission_required = "core.can_delete"
     raise_exception = True
+
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_http_methods
+from .models import Book
+from .forms import BookSearchForm
+from django.db.models import Q
+
+@require_http_methods(["GET"])
+def book_list(request):
+    # Validate query via Django Form to avoid unsafe patterns
+    form = BookSearchForm(request.GET or None)
+    books = Book.objects.all()
+
+    if form.is_valid():
+        q = form.cleaned_data.get("q")
+        if q:
+            # ORM lookups are parameterized and safe
+            books = books.filter(
+                Q(title__icontains=q) |
+                Q(author__icontains=q)
+            )
+
+    return render(request, "bookshelf/book_list.html", {"books": books, "form": form})
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def book_create(request):
+    from django import forms
+
+    class BookForm(forms.ModelForm):
+        class Meta:
+            model = Book
+            fields = ["title", "author", "publication_year"]
+
+    if request.method == "POST":
+        form = BookForm(request.POST)
+        if form.is_valid():          # validates & sanitizes user input
+            form.save()
+            return redirect("book_list")
+    else:
+        form = BookForm()
+
+    return render(request, "bookshelf/form_example.html", {"form": form})
+
+@require_http_methods(["GET"])
+def book_detail(request, pk):
+    # Always use ORM or parameterized queries; never format SQL strings with user input.
+    book = get_object_or_404(Book, pk=pk)
+    return render(request, "bookshelf/book_detail.html", {"book": book})
+
+
+# If you ever MUST use raw SQL, parameterize properly:
+from django.db import connection
+
+def safe_raw_example(title_prefix: str):
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "SELECT id, title FROM bookshelf_book WHERE title LIKE %s",
+            [f"{title_prefix}%"]
+        )
+        rows = cursor.fetchall()
+    return rows

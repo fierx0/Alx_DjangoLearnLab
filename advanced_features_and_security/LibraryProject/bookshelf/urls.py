@@ -27,3 +27,22 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path("", views.book_list, name="book_list"),
+    path("create/", views.book_create, name="book_create"),
+    path("<int:pk>/", views.book_detail, name="book_detail"),
+]
+
+
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path("admin/", admin.site.urls),
+    path("", include("bookshelf.urls")),
+]
