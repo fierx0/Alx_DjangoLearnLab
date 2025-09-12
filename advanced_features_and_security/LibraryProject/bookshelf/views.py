@@ -158,3 +158,4 @@ def safe_raw_example(title_prefix: str):
         )
         rows = cursor.fetchall()
     return rows
+"from .forms import ExampleForm"
