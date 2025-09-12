@@ -6,3 +6,4 @@ class BookSearchForm(forms.Form):
         max_length=200,
         strip=True
     )
+"ExampleForm" = forms.Form()
