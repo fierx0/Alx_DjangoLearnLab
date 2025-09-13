@@ -236,3 +236,78 @@ LOGGING = {
 
 
 ["SECURE_BROWSER_XSS_FILTER", "X_FRAME_OPTIONS", "SECURE_CONTENT_TYPE_NOSNIFF", "CSRF_COOKIE_SECURE", "SESSION_COOKIE_SECURE"]
+
+
+
+# --- SECURITY / HTTPS HARDENING ---------------------------------------------
+# Put SecurityMiddleware FIRST so it can set/redirect before other middlewares
+MIDDLEWARE = [
+    "django.middleware.security.SecurityMiddleware",
+    # If you use WhiteNoise for static files, it should come right after SecurityMiddleware:
+    # "whitenoise.middleware.WhiteNoiseMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+]
+
+# Only set DEBUG=False in production
+DEBUG = False
+
+# Always set your allowed hosts (prod domain(s) or server IPs)
+ALLOWED_HOSTS = ["example.com", "www.example.com"]  # ← change to your domain(s)
+
+# If running behind a reverse proxy/ELB that terminates TLS, let Django know the original scheme:
+# The proxy must send X-Forwarded-Proto: https on HTTPS requests.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# --- Step 1: Force HTTPS site-wide ------------------------------------------
+# Redirect all HTTP to HTTPS at the Django layer (in addition to your web server redirect)
+SECURE_SSL_REDIRECT = True  # Hard redirect to HTTPS
+
+# HTTP Strict Transport Security (tells browsers to always use HTTPS)
+# 31536000 seconds = 1 year. Increase gradually (e.g., start with a day/week) before going to 1y.
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True   # apply HSTS to all subdomains
+SECURE_HSTS_PRELOAD = True              # allow inclusion in browser preload lists (be sure you want this!)
+
+# --- Step 2: Secure cookies --------------------------------------------------
+SESSION_COOKIE_SECURE = True  # session cookies only over HTTPS
+CSRF_COOKIE_SECURE = True     # CSRF cookie only over HTTPS
+
+# Consider tightening SameSite (trade-offs for cross-site flows/payment gateways)
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SAMESITE = "Lax"
+
+# --- Step 3: Secure headers --------------------------------------------------
+# Clickjacking protection
+X_FRAME_OPTIONS = "DENY"
+
+# Prevent MIME type sniffing
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# Modern browsers removed X-XSS-Protection; Django removed SECURE_BROWSER_XSS_FILTER in newer versions.
+# If you are on an older Django (<3.1), you could set: SECURE_BROWSER_XSS_FILTER = True
+# For modern protection, prefer a strict Content Security Policy via django-csp (optional, shown below).
+
+# Optional: set additional security-related headers (supported in Django 4+)
+# SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
+# SECURE_REFERRER_POLICY = "same-origin"  # reasonable default; or "strict-origin-when-cross-origin"
+
+# If you use CSRF with a custom domain, list trusted origins (HTTPS only).
+# Include scheme and domain; do not add a trailing slash.
+CSRF_TRUSTED_ORIGINS = [
+    "https://example.com",
+    "https://www.example.com",
+]
+
+# --- Optional: Content Security Policy (strong XSS mitigation) ---------------
+# pip install django-csp
+# INSTALLED_APPS += ["csp"]
+# MIDDLEWARE.insert(1, "csp.middleware.CSPMiddleware")
+# CSP_DEFAULT_SRC = ("'self'",)
+# CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")  # if you have inline styles; try to remove inline where possible
+# CSP_SCRIPT_SRC = ("'self'",)                  # add CDNs or hashes as needed
+# -----------------------------------------------------------------------------
