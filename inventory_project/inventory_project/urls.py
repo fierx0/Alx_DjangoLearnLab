@@ -20,3 +20,18 @@ from django.urls import path
 urlpatterns = [
     path('admin/', admin.site.urls),
 ]
+
+from django.contrib import admin
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from catalog.views import CategoryViewSet, SupplierViewSet, ProductViewSet
+
+router = DefaultRouter()
+router.register(r'catalog/categories', CategoryViewSet, basename='category')
+router.register(r'catalog/suppliers', SupplierViewSet, basename='supplier')
+router.register(r'catalog/products', ProductViewSet, basename='product')
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('api/', include(router.urls)),
+]
