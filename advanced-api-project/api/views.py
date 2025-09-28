@@ -92,3 +92,55 @@ class BookDeleteView(generics.DestroyAPIView):
     serializer_class = BookSerializer
     permission_classes = [permissions.IsAuthenticated]
     lookup_field = "pk"
+
+
+from rest_framework import generics, permissions, filters
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+from django_filters.rest_framework import DjangoFilterBackend  # ← add this
+
+from .models import Book
+from .serializers import BookSerializer
+
+BOOK_QS = Book.objects.select_related("author").all()
+
+class BookListView(generics.ListAPIView):
+    """
+    Read-only list of books with filtering, searching, and ordering.
+
+    Filtering (django-filter):
+      - ?title=ExactTitle
+      - ?publication_year=1956
+      - ?author=1             (by author id)
+      - ?author__name=Mahfouz (case-sensitive exact match by default)
+
+    Searching (SearchFilter):
+      - ?search=palace        (matches title or author name)
+
+    Ordering (OrderingFilter):
+      - ?ordering=title
+      - ?ordering=-publication_year
+      - ?ordering=author__name
+    """
+    queryset = BOOK_QS
+    serializer_class = BookSerializer
+    permission_classes = [permissions.AllowAny]
+
+    # DRF filter backends (can also be set globally; keeping explicit here)
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+
+    # Field-level filter config (django-filter)
+    filterset_fields = {
+        "title": ["exact", "icontains", "istartswith"],
+        "publication_year": ["exact", "gte", "lte"],
+        "author": ["exact"],            # author id
+        "author__name": ["exact", "icontains", "istartswith"],
+    }
+
+    # Search across these fields (uses icontains under the hood)
+    search_fields = ["title", "author__name"]
+
+    # Allow ordering by these fields
+    ordering_fields = ["title", "publication_year", "author__name"]
+
+    # Default sort if none provided
+    ordering = ["title"]
