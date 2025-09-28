@@ -10,10 +10,7 @@ class BookAPITests(APITestCase):
     """Comprehensive tests for Book API endpoints."""
 
     def setUp(self):
-        # user for authenticated requests
         self.user = User.objects.create_user(username="tester", password="pass1234")
-
-        # test data
         self.author = Author.objects.create(name="Naguib Mahfouz")
         self.book = Book.objects.create(
             title="Palace Walk", publication_year=1956, author=self.author
@@ -24,33 +21,34 @@ class BookAPITests(APITestCase):
         url = reverse("book-list")
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertGreaterEqual(len(resp.json()), 1)
+        self.assertGreaterEqual(len(resp.data), 1)          # uses response.data
 
     def test_retrieve_book(self):
         url = reverse("book-detail", kwargs={"pk": self.book.pk})
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertEqual(resp.json()["title"], "Palace Walk")
+        self.assertEqual(resp.data["title"], "Palace Walk")  # uses response.data
 
     def test_create_book_requires_auth(self):
         url = reverse("book-create")
-        data = {"title": "Children of the Alley", "publication_year": 1959, "author": self.author.id}
-        resp = self.client.post(url, data, format="json")
+        payload = {"title": "Children of the Alley", "publication_year": 1959, "author": self.author.id}
+        resp = self.client.post(url, payload, format="json")
         self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_create_book_authenticated(self):
         self.client.force_authenticate(user=self.user)
         url = reverse("book-create")
-        data = {"title": "Children of the Alley", "publication_year": 1959, "author": self.author.id}
-        resp = self.client.post(url, data, format="json")
+        payload = {"title": "Children of the Alley", "publication_year": 1959, "author": self.author.id}
+        resp = self.client.post(url, payload, format="json")
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Book.objects.count(), 2)
+        self.assertEqual(resp.data["title"], "Children of the Alley")  # uses response.data
 
     def test_update_book(self):
         self.client.force_authenticate(user=self.user)
         url = reverse("book-update-pk", kwargs={"pk": self.book.pk})
-        data = {"title": "Palace Walk Updated", "publication_year": 1956, "author": self.author.id}
-        resp = self.client.put(url, data, format="json")
+        payload = {"title": "Palace Walk Updated", "publication_year": 1956, "author": self.author.id}
+        resp = self.client.put(url, payload, format="json")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.book.refresh_from_db()
         self.assertEqual(self.book.title, "Palace Walk Updated")
@@ -67,18 +65,18 @@ class BookAPITests(APITestCase):
         url = reverse("book-list") + "?publication_year=1956"
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(resp.json()), 1)
+        self.assertEqual(len(resp.data), 1)                  # uses response.data
 
     def test_search_books(self):
         url = reverse("book-list") + "?search=palace"
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertGreaterEqual(len(resp.json()), 1)
+        self.assertGreaterEqual(len(resp.data), 1)           # uses response.data
 
     def test_order_books_by_year_desc(self):
         Book.objects.create(title="Miramar", publication_year=1967, author=self.author)
         url = reverse("book-list") + "?ordering=-publication_year"
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        years = [b["publication_year"] for b in resp.json()]
+        years = [b["publication_year"] for b in resp.data]   # uses response.data
         self.assertEqual(years, sorted(years, reverse=True))
