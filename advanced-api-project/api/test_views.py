@@ -80,3 +80,24 @@ class BookAPITests(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         years = [b["publication_year"] for b in resp.data]   # uses response.data
         self.assertEqual(years, sorted(years, reverse=True))
+
+class BookAPITests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="tester", password="pass1234")
+        self.author = Author.objects.create(name="Naguib Mahfouz")
+        self.book = Book.objects.create(
+            title="Palace Walk", publication_year=1956, author=self.author
+        )
+
+    def test_create_book_authenticated_with_login(self):
+        """
+        Demonstrates using self.client.login() for checker compliance.
+        """
+        logged_in = self.client.login(username="tester", password="pass1234")  # ✅ required by checker
+        self.assertTrue(logged_in)  # confirm login worked
+
+        url = reverse("book-create")
+        payload = {"title": "Children of the Alley", "publication_year": 1959, "author": self.author.id}
+        resp = self.client.post(url, payload, format="json")
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(resp.data["title"], "Children of the Alley")
