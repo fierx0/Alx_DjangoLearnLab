@@ -19,3 +19,71 @@ def api_root(request, format=None):
         "authors": reverse("authors", request=request),
         "books": reverse("books", request=request),
     })
+
+
+# --- add below your existing imports in api/views.py ---
+from rest_framework import generics, permissions, filters
+from .models import Book
+from .serializers import BookSerializer
+
+# Common queryset (with select_related for efficiency)
+BOOK_QS = Book.objects.select_related("author").all()
+
+class BookListView(generics.ListAPIView):
+    """
+    Read-only list of books.
+    - open to everyone (AllowAny)
+    - supports ?search= and ?ordering=
+    """
+    queryset = BOOK_QS
+    serializer_class = BookSerializer
+    permission_classes = [permissions.AllowAny]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ["title", "author__name"]
+    ordering_fields = ["title", "publication_year", "author__name"]
+    ordering = ["title"]
+
+
+class BookDetailView(generics.RetrieveAPIView):
+    """
+    Retrieve a single book by ID (pk).
+    - open to everyone (AllowAny)
+    """
+    queryset = BOOK_QS
+    serializer_class = BookSerializer
+    permission_classes = [permissions.AllowAny]
+    lookup_field = "pk"
+
+
+class BookCreateView(generics.CreateAPIView):
+    """
+    Create a new book.
+    - authenticated only
+    - serializer validates publication_year (no future years)
+    """
+    queryset = BOOK_QS
+    serializer_class = BookSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+class BookUpdateView(generics.UpdateAPIView):
+    """
+    Update an existing book.
+    - authenticated only
+    - supports PUT and PATCH
+    """
+    queryset = BOOK_QS
+    serializer_class = BookSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = "pk"
+
+
+class BookDeleteView(generics.DestroyAPIView):
+    """
+    Delete a book by ID.
+    - authenticated only
+    """
+    queryset = BOOK_QS
+    serializer_class = BookSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = "pk"
