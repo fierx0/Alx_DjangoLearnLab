@@ -32,7 +32,7 @@ class PostForm(forms.ModelForm):
     tags_csv = forms.CharField(required=False, help_text="Comma-separated (e.g. python, django)")
     class Meta:
         model = Post
-        fields = ("title", "content")  # tags handled via tags_csv
+        fields = ("title", "content", "tags")  # tags handled via tags_csv
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.pk:
