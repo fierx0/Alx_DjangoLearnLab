@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "accounts",
     "catalog",
     "inventory",
+    "drf_spectacular",
 ]
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
@@ -54,6 +55,8 @@ REST_FRAMEWORK = {
     ],
     "PAGE_SIZE": 20,
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+        "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+
 }
     
 
