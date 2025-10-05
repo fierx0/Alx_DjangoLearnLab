@@ -142,6 +142,7 @@ class PostByTagListView(ListView):
 
     def get_queryset(self):
         self.tag = get_object_or_404(Tag, slug=self.kwargs["slug"])
+            qs = Post.objects.filter(tags__slug=self.tag.slug)
         return (
             Post.objects.select_related("author")
             .prefetch_related("tags")
