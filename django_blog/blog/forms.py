@@ -38,6 +38,9 @@ class PostForm(forms.ModelForm):
         if self.instance and self.instance.pk:
             names = [t.name for t in self.instance.tags.all()]
             self.fields["tags_csv"].initial = ", ".join(names)
+            widgets = {
+            "tags": TagWidget(),      # ✅ use Taggit’s TagWidget
+        }
     def clean_title(self):
         title = self.cleaned_data["title"].strip()
         if not title:
