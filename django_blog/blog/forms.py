@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
-from .models import Profile, Post, Comment
+from .models import Profile, Post, Comment, Tag
 
 User = get_user_model()
 
@@ -10,7 +10,6 @@ class RegistrationForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = User
         fields = ("username", "email")
-
     def save(self, commit=True):
         user = super().save(commit=False)
         user.email = self.cleaned_data["email"]
@@ -30,14 +29,25 @@ class ProfileUpdateForm(forms.ModelForm):
         widgets = {"bio": forms.Textarea(attrs={"rows": 4})}
 
 class PostForm(forms.ModelForm):
+    tags_csv = forms.CharField(required=False, help_text="Comma-separated (e.g. python, django)")
     class Meta:
         model = Post
-        fields = ("title", "content")
+        fields = ("title", "content")  # tags handled via tags_csv
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            names = [t.name for t in self.instance.tags.all()]
+            self.fields["tags_csv"].initial = ", ".join(names)
     def clean_title(self):
         title = self.cleaned_data["title"].strip()
         if not title:
             raise forms.ValidationError("Title cannot be empty.")
         return title
+    def parsed_tags(self):
+        raw = self.cleaned_data.get("tags_csv", "")
+        parts = [p.strip() for p in raw.split(",") if p.strip()]
+        # normalize to lowercase & keep order without dups
+        return list(dict.fromkeys([p.lower() for p in parts]))
 
 class CommentForm(forms.ModelForm):
     class Meta:

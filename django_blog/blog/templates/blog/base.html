@@ -1,32 +1,36 @@
-{% load static %}
-<!doctype html>
+<!-- blog/templates/blog/base.html -->
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>{% block title %}My Blog{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'blog/css/main.css' %}">
+  <meta charset="UTF-8">
+  <title>{% block title %}My Blog{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'blog/css/main.css' %}">
 </head>
 <body>
-    {% if messages %}
-  <ul class="messages">
-    {% for message in messages %}
-      <li class="message {{ message.tags }}">{{ message }}</li>
-    {% endfor %}
-  </ul>
-{% endif %}
+  <header>
+    <h1><a href="{% url 'blog:post_list' %}">My Blog</a></h1>
 
-    <header>
-        <h1><a href="/">Django Blog</a></h1>
-    </header>
+    <!-- 🔍 Search bar -->
+    <form action="{% url 'blog:post_search' %}" method="get" class="search-bar">
+      <input type="text" name="q" value="{{ q|default:'' }}" placeholder="Search posts or tags…">
+      <button type="submit">Search</button>
+    </form>
 
-    <main>
-        {% block content %}{% endblock %}
-    </main>
+    <!-- Navigation links -->
+    <nav>
+      {% if user.is_authenticated %}
+        <a href="{% url 'blog:profile' %}">Profile</a> |
+        <a href="{% url 'blog:logout' %}">Logout</a>
+      {% else %}
+        <a href="{% url 'blog:login' %}">Login</a> |
+        <a href="{% url 'blog:register' %}">Register</a>
+      {% endif %}
+    </nav>
+  </header>
 
-    <footer>
-        <p>&copy; 2025 Django Blog</p>
-    </footer>
-
-    <script src="{% static 'blog/js/app.js' %}"></script>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
 </body>
 </html>

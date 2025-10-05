@@ -59,3 +59,33 @@ main {
 .comment-meta { font-size: .9rem; color: #6b7280; margin: 0 0 .25rem; }
 .comment-body { margin: 0; }
 .comment-actions a { font-size: .9rem; }
+
+/* --- Search bar styles --- */
+.search-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: 1rem;
+}
+
+.search-bar input[type="text"] {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.search-bar button {
+  padding: 0.4rem 0.8rem;
+  border: none;
+  border-radius: 6px;
+  background-color: #0077cc;
+  color: white;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.search-bar button:hover {
+  background-color: #005fa3;
+}

@@ -1,16 +1,8 @@
 {% extends "blog/base.html" %}
-{% block title %}All Posts{% endblock %}
+{% block title %}Search{% endblock %}
 
 {% block content %}
-  <h2>Latest posts</h2>
-
-  {% if active_tag %}
-    <p>Filtering by tag: <strong>#{{ active_tag.name }}</strong></p>
-  {% endif %}
-
-  {% if user.is_authenticated %}
-    <p><a href="{% url 'blog:post_create' %}">➕ New post</a></p>
-  {% endif %}
+  <h2>Search results{% if q %} for “{{ q }}”{% endif %}</h2>
 
   {% if posts %}
     <ul class="post-list">
@@ -20,7 +12,6 @@
           <p class="meta">by {{ post.author }} • {{ post.published_date|date:"Y-m-d H:i" }}</p>
           <p>{{ post.content|truncatewords:40 }}</p>
 
-          {# NEW: show tags #}
           {% if post.tags.all %}
             <p class="meta">
               {% for t in post.tags.all %}
@@ -32,6 +23,6 @@
       {% endfor %}
     </ul>
   {% else %}
-    <p>No posts yet.</p>
+    <p>No results found.</p>
   {% endif %}
 {% endblock %}
