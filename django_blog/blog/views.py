@@ -13,14 +13,14 @@ def post_list(request):
     return render(request, "blog/post_list.html", {"posts": posts})
 
 class LoginView(auth_views.LoginView):
-    template_name = "registration/login.html"
+    template_name = "blog/login.html"
 
 class LogoutView(auth_views.LogoutView):
-    template_name = "registration/logged_out.html"
+    template_name = "blog/logged_out.html"
 
 class RegisterView(View):
     def get(self, request):
-        return render(request, "registration/register.html", {"form": RegistrationForm()})
+        return render(request, "blog/register.html", {"form": RegistrationForm()})
 
     def post(self, request):
         form = RegistrationForm(request.POST)
@@ -28,11 +28,11 @@ class RegisterView(View):
             form.save()
             messages.success(request, "Account created. Please sign in.")
             return redirect("blog:login")
-        return render(request, "registration/register.html", {"form": form})
+        return render(request, "blog/register.html", {"form": form})
 
 @login_required
 def profile(request):
-    return render(request, "registration/profile.html")
+    return render(request, "blog/profile.html")
 
 @login_required
 def profile_edit(request):
@@ -47,4 +47,4 @@ def profile_edit(request):
     else:
         u_form = UserUpdateForm(instance=request.user)
         p_form = ProfileUpdateForm(instance=request.user.profile)
-    return render(request, "registration/profile_edit.html", {"u_form": u_form, "p_form": p_form})
+    return render(request, "blog/profile_edit.html", {"u_form": u_form, "p_form": p_form})
