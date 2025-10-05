@@ -12,3 +12,8 @@ class PostAdmin(admin.ModelAdmin):
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ("user",)
     search_fields = ("user__username", "user__email")
+from .models import Comment
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ("post", "author", "created_at")
+    search_fields = ("content", "author__username", "post__title")

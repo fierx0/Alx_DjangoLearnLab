@@ -1,16 +1,15 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
-from .models import Profile
+from .models import Profile, Post, Comment
 
 User = get_user_model()
 
 class RegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True)
-
     class Meta(UserCreationForm.Meta):
         model = User
-        fields = ("username", "email")  # password1/password2 are included via UserCreationForm
+        fields = ("username", "email")
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -30,16 +29,23 @@ class ProfileUpdateForm(forms.ModelForm):
         fields = ("bio",)
         widgets = {"bio": forms.Textarea(attrs={"rows": 4})}
 
-from django import forms
-from .models import Post
-
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ("title", "content")   # author set automatically in the view
-
+        fields = ("title", "content")
     def clean_title(self):
         title = self.cleaned_data["title"].strip()
         if not title:
             raise forms.ValidationError("Title cannot be empty.")
         return title
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ("content",)
+        widgets = {"content": forms.Textarea(attrs={"rows": 3, "placeholder": "Write a comment…"})}
+    def clean_content(self):
+        text = self.cleaned_data["content"].strip()
+        if not text:
+            raise forms.ValidationError("Comment cannot be empty.")
+        return text
