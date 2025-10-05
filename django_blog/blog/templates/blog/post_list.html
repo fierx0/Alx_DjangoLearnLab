@@ -22,9 +22,9 @@
 
           {# NEW: show tags #}
           {% if post.tags.all %}
-            <p class="meta">
-              {% for t in post.tags.all %}
-                <a href="{% url 'blog:post_by_tag' t.slug %}" class="tag">#{{ t.name }}</a>{% if not forloop.last %}, {% endif %}
+             <p class="meta">
+              {% for tag in post.tags.all %}
+               <a href="{% url 'blog:post_by_tag' tag.slug %}" class="tag">#{{ tag.name }}</a>{% if not forloop.last %}, {% endif %}
               {% endfor %}
             </p>
           {% endif %}

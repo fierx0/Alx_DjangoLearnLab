@@ -1,9 +1,10 @@
-ffrom django.db import models
+from django.db import models
 from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.urls import reverse
 from django.utils.text import slugify
+from taggit.managers import TaggableManager
 
 User = get_user_model()
 
@@ -27,8 +28,7 @@ class Post(models.Model):
     content = models.TextField()
     published_date = models.DateTimeField(auto_now_add=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")
-    tags = models.ManyToManyField(Tag, related_name="posts", blank=True)
-
+    
     class Meta:
         ordering = ["-published_date"]
 
@@ -37,7 +37,7 @@ class Post(models.Model):
 
     def get_absolute_url(self):
         return reverse("blog:post_detail", kwargs={"pk": self.pk})
-
+    
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     bio = models.TextField(blank=True)

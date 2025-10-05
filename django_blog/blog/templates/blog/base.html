@@ -1,23 +1,23 @@
-<!-- blog/templates/blog/base.html -->
-
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>{% block title %}My Blog{% endblock %}</title>
+
+  <!-- Static CSS -->
   <link rel="stylesheet" href="{% static 'blog/css/main.css' %}">
 </head>
 <body>
   <header>
     <h1><a href="{% url 'blog:post_list' %}">My Blog</a></h1>
 
-    <!-- 🔍 Search bar -->
+    <!-- Search bar -->
     <form action="{% url 'blog:post_search' %}" method="get" class="search-bar">
       <input type="text" name="q" value="{{ q|default:'' }}" placeholder="Search posts or tags…">
       <button type="submit">Search</button>
     </form>
 
-    <!-- Navigation links -->
     <nav>
       {% if user.is_authenticated %}
         <a href="{% url 'blog:profile' %}">Profile</a> |
@@ -29,8 +29,19 @@
     </nav>
   </header>
 
+  {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+        <li class="message {{ message.tags }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
   <main>
     {% block content %}{% endblock %}
   </main>
+
+  <!-- Optional static JS -->
+  <script src="{% static 'blog/js/app.js' %}"></script>
 </body>
 </html>
