@@ -76,14 +76,11 @@ WSGI_APPLICATION = 'django_blog.wsgi.application'
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "django_blog",          # your database name
-        "USER": "postgres",             # your db username
-        "PASSWORD": "yourpassword",     # your db password
-        "HOST": "127.0.0.1",            # or "localhost"
-        "PORT": "5432",                 # default PostgreSQL port
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+
 
 
 # Password validation
@@ -127,22 +124,15 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-from django.urls import path
-from .views import (
-    post_list,
-    LoginView, LogoutView, RegisterView,
-    profile, profile_edit,
-)
+LOGIN_REDIRECT_URL = "blog:post_list"   # after login
+LOGOUT_REDIRECT_URL = "blog:post_list"  # after logout
+LOGIN_URL = "blog:login"                # for @login_required redirects
 
-app_name = "blog"
-
-urlpatterns = [
-    path("", post_list, name="post_list"),
-
-    # Auth
-    path("login/", LoginView.as_view(), name="login"),
-    path("logout/", LogoutView.as_view(), name="logout"),
-    path("register/", RegisterView.as_view(), name="register"),
-    path("profile/", profile, name="profile"),
-    path("profile/edit/", profile_edit, name="profile_edit"),
-]
+from django.contrib.messages import constants as messages
+MESSAGE_TAGS = {
+    messages.DEBUG: "debug",
+    messages.INFO: "info",
+    messages.SUCCESS: "success",
+    messages.WARNING: "warning",
+    messages.ERROR: "error",
+}
