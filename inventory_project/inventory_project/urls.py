@@ -19,6 +19,9 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework.authtoken.views import obtain_auth_token
 from catalog.views import CategoryViewSet, SupplierViewSet, ProductViewSet
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+from django.views.generic import RedirectView   # <-- add this
+
 
 router = DefaultRouter()
 router.register(r'catalog/categories', CategoryViewSet, basename='category')
@@ -26,9 +29,17 @@ router.register(r'catalog/suppliers',  SupplierViewSet, basename='supplier')
 router.register(r'catalog/products',   ProductViewSet, basename='product')
 
 urlpatterns = [
+     path('', RedirectView.as_view(url='/api/', permanent=False)),  # <-- add this line
+
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
 
     # Token login endpoint (POST username & password → returns token)
     path('api/auth/token/', obtain_auth_token),
+    # OpenAPI schema (JSON)
+    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+    # Swagger UI
+    path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    # Redoc (optional)
+    path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
 ]
