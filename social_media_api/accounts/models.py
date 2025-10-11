@@ -3,20 +3,26 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 class User(AbstractUser):
-    bio = models.TextField(blank=True)
-    profile_picture = models.ImageField(upload_to='profiles/', blank=True, null=True)
-    followers = models.ManyToManyField(
+    # Users this user follows
+    following = models.ManyToManyField(
         'self',
-        blank=True,
         symmetrical=False,
-        related_name='following'
+        through='Follow',
+        related_name='followers',
+        blank=True,
     )
 
-    def followers_count(self) -> int:
-        return self.followers.count()
+class Follow(models.Model):
+    follower = models.ForeignKey('User', on_delete=models.CASCADE, related_name='following_relations')
+    following = models.ForeignKey('User', on_delete=models.CASCADE, related_name='follower_relations')
+    created_at = models.DateTimeField(auto_now_add=True)
 
-    def following_count(self) -> int:
-        return self.following.count()
+    class Meta:
+        unique_together = (('follower', 'following'),)
+        indexes = [
+            models.Index(fields=['follower', 'following']),
+            models.Index(fields=['created_at']),
+        ]
 
     def __str__(self):
-        return self.username
+        return f'{self.follower.username} → {self.following.username}'
