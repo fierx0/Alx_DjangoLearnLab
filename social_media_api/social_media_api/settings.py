@@ -5,18 +5,23 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --------------------------------
+# 🌐 PORT CONFIGURATION
+# --------------------------------
+# Used by Gunicorn or any platform (Heroku, Render, Fly.io) that assigns a dynamic port
+PORT = int(os.getenv('PORT', 8000))
+
+# --------------------------------
 # 🔐 SECURITY & DEBUG SETTINGS
 # --------------------------------
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'change-me-in-production')
 
-# ✅ Explicitly disable debug for production
+# Disable debug for production
 DEBUG = False
 
-# ✅ Define allowed hosts
 ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
-    'social-media-api-yourname.herokuapp.com',  # change this to your domain or hosting URL
+    'social-media-api-yourname.herokuapp.com',  # Replace with your domain or host
 ]
 
 # --------------------------------
