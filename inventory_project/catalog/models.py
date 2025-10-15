@@ -29,3 +29,10 @@ class Product(models.Model):
 
     def __str__(self):
         return f"{self.sku} - {self.name}"
+
+class Stock(models.Model):
+    product = models.OneToOneField('Product', on_delete=models.CASCADE, related_name='stock')
+    on_hand = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.product.name} - {self.on_hand}"
