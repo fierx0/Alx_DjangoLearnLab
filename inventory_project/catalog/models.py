@@ -36,3 +36,16 @@ class Stock(models.Model):
 
     def __str__(self):
         return f"{self.product.name} - {self.on_hand}"
+
+class Movement(models.Model):
+    MOVEMENT_TYPES = [
+        ('RECEIVE', 'Receive'),
+        ('ISSUE', 'Issue'),
+        ('ADJUST', 'Adjust'),
+    ]
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='movements')
+    movement_type = models.CharField(max_length=10, choices=MOVEMENT_TYPES)
+    quantity = models.PositiveIntegerField()
+    reason = models.CharField(max_length=200, blank=True, null=True)
+    created_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
