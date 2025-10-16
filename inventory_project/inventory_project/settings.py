@@ -48,10 +48,13 @@ INSTALLED_APPS = [
 ]
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
+        # Browsable API login button (Session)
+        "rest_framework.authentication.SessionAuthentication",
+        # Token header support for clients
         "rest_framework.authentication.TokenAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.IsAuthenticated",
+        "rest_framework.permissions.AllowAny",
     ],
     "PAGE_SIZE": 20,
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
