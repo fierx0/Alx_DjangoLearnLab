@@ -1,10 +1,11 @@
 from django.conf import settings
-from django.db import models
 from django.core.validators import MinValueValidator
+from django.db import models
 from django.db.models import CheckConstraint, Q
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 
-# Reusable timestamps for all models
 class TimeStampedModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -19,9 +20,7 @@ class Category(TimeStampedModel):
 
     class Meta:
         ordering = ["name"]
-        indexes = [
-            models.Index(fields=["name"]),
-        ]
+        indexes = [models.Index(fields=["name"])]
 
     def __str__(self):
         return self.name
@@ -68,9 +67,7 @@ class Product(TimeStampedModel):
 
 
 class Stock(models.Model):
-    product = models.OneToOneField(
-        Product, on_delete=models.CASCADE, related_name="stock"
-    )
+    product = models.OneToOneField(Product, on_delete=models.CASCADE, related_name="stock")
     on_hand = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])
 
     class Meta:
@@ -86,23 +83,13 @@ class Movement(models.Model):
     RECEIVE = "RECEIVE"
     ISSUE = "ISSUE"
     ADJUST = "ADJUST"
+    MOVEMENT_TYPES = [(RECEIVE, "Receive"), (ISSUE, "Issue"), (ADJUST, "Adjust")]
 
-    MOVEMENT_TYPES = [
-        (RECEIVE, "Receive"),
-        (ISSUE, "Issue"),
-        (ADJUST, "Adjust"),
-    ]
-
-    product = models.ForeignKey(
-        Product, on_delete=models.CASCADE, related_name="movements"
-    )
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="movements")
     movement_type = models.CharField(max_length=10, choices=MOVEMENT_TYPES)
-    # Use PositiveIntegerField + MinValueValidator(1) to guarantee strictly positive quantities
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     reason = models.CharField(max_length=200, blank=True, null=True)
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
-    )
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -114,3 +101,10 @@ class Movement(models.Model):
 
     def __str__(self):
         return f"{self.movement_type} - {self.product.name} ({self.quantity})"
+
+
+# Auto-create a Stock row for any new Product
+@receiver(post_save, sender=Product)
+def ensure_stock_exists(sender, instance, created, **kwargs):
+    if created:
+        Stock.objects.get_or_create(product=instance)
